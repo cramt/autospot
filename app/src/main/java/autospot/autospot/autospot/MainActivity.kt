@@ -28,45 +28,36 @@ class MainActivity : AppCompatActivity() {
         };
 
         Thread {
-            val ip = wifiIpAddress(this@MainActivity)
-            runOnUiThread {
-                Toast.makeText(this@MainActivity, ip, Toast.LENGTH_LONG).show()
-            }
-            /*
-            try {
-                val wifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-                val wifiInfo = wifiMgr.connectionInfo
-                val ip = wifiInfo.ipAddress
-                val ipAddress = Formatter.formatIpAddress(ip)
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, ip.toString(), Toast.LENGTH_LONG).show()
-                }
-            }
-            catch (e: Throwable){
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
-                }
-            }
-            */
-
             val udp = UDPServerThread();
-            val a = mutableListOf<Long>()
-            var i = 0
+            val hashmap = hashMapOf<String, MutableList<Long>>()
             udp.addOnMessageListener {
-                val b = it.toLongOrNull()
-                i++
-                udpThingy.text = (System.currentTimeMillis() - b!!).toString()
-                /*
-                if(b != null){
-                    a.add(System.currentTimeMillis() - b)
-                    if(a.size > 9){
-                        udpThingy.text = a.average().toString()
-                        a.clear()
+                val splittet = it.split("=")
+                val mac = splittet[0]
+                val value = splittet[1].toLongOrNull()
+                if (value != null) {
+                    runOnUiThread {
+                        if (hashmap[mac] == null) {
+                            hashmap[mac] = mutableListOf()
+                        }
+                        hashmap[mac]!!.add(value)
                     }
                 }
-                */
             }
             udp.start()
+            while (true) {
+                runOnUiThread {
+                    var str = "";
+                    val lhashmap = hashmap.clone() as HashMap<String, List<Long>>;
+                    hashmap.clear()
+                    for (key in lhashmap.keys) {
+                        str += key + ": " + lhashmap[key]?.average() + "\r\n"
+                    }
+
+
+                    udpThingy.text = str
+                }
+                Thread.sleep(1000)
+            }
         }.start()
     }
 
