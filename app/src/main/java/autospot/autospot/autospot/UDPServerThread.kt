@@ -51,7 +51,7 @@ class UDPServerThread : ServerThread() {
             socket = DatagramSocket(6969)
 
             while (bKeepRunning) {
-                socket!!.receive(packet)
+                socket.receive(packet)
                 message = String(lmessage, 0, packet.length)
 
                 onMessage(message)

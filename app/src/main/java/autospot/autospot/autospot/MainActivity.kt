@@ -1,85 +1,78 @@
 package autospot.autospot.autospot
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast
 
 import kotlinx.android.synthetic.main.main_activity.*
-import android.net.wifi.WifiManager
-import android.util.Log
 import kotlinx.android.synthetic.main.content_main.*
-import java.math.BigInteger
-import java.net.InetAddress
-import java.net.UnknownHostException
-import java.nio.ByteOrder
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        var PositionHandler: AutoSpotPositionHandler? = null
+        var RotationHandler: AutoSpotRotationHandler? = null
+    }
+
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        };
+        val ESPHeaders = arrayOf(ESPHeader1, ESPHeader2, ESPHeader3)
+        val ESPStrength = arrayOf(ESPstrength1, ESPstrength2, ESPstrength3)
+        val ESPPosX = arrayOf(ESPPosX1, ESPPosX2, ESPPosX3)
+        val ESPPosY = arrayOf(ESPPosY1, ESPPosY2, ESPPosY3)
 
         Thread {
             val udp = UDPServerThread();
-            val hashmap = hashMapOf<String, MutableList<Long>>()
-            udp.addOnMessageListener {
-                val splittet = it.split("=")
-                val mac = splittet[0]
-                val value = splittet[1].toLongOrNull()
-                if (value != null) {
-                    runOnUiThread {
-                        if (hashmap[mac] == null) {
-                            hashmap[mac] = mutableListOf()
-                        }
-                        hashmap[mac]!!.add(value)
+            PositionHandler = AutoSpotPositionHandler(udp, this)
+            RotationHandler = AutoSpotRotationHandler()
+            PositionHandler!!.addOnPositionListener(RotationHandler!!::onPosition)
+            fun onRawData(it: HashMap<String, Double>) {
+                runOnUiThread {
+                    val s_x = SpotlightPosX.text.toString().toDoubleOrNull()
+                    if (s_x != null) {
+                        RotationHandler!!.x = s_x
                     }
+                    val s_y = SpotlightPosY.text.toString().toDoubleOrNull()
+                    if (s_y != null) {
+                        RotationHandler!!.y = s_y
+                    }
+                    val s_z = SpotlightPosZ.text.toString().toDoubleOrNull()
+                    if (s_z != null) {
+                        RotationHandler!!.z = s_z
+                    }
+                    if (it.keys.count() > 3) {
+                        statusText.text = "too many (" + it.keys.count().toString() + ") EPS's connected"
+                    } else {
+                        statusText.text = it.keys.count().toString() + " EPS's connected"
+                        val positions = hashMapOf<String, Vector2>()
+                        for ((i, key) in it.keys.withIndex()) {
+                            ESPHeaders[i].text = "\r\n" + key
+                            ESPStrength[i].text = it[key]!!.toString() + " RSSI"
+                            val x = ESPPosX[i].text.toString().toFloatOrNull()
+                            val y = ESPPosY[i].text.toString().toFloatOrNull()
+                            if (y != null && x != null) {
+                                positions[key] = Vector2(x.toDouble(), y.toDouble())
+                            }
+                        }
+                        PositionHandler!!.positions = positions
+                    }
+                }
+            }
+            PositionHandler!!.addOnRawDataListener(::onRawData)
+            runOnUiThread {
+                startSessionBtn.setOnClickListener {
+                    PositionHandler!!.removeOnRawDataListener(::onRawData)
+                    val intent = Intent(this, SessionActivity::class.java)
+                    startActivity(intent)
                 }
             }
             udp.start()
-            while (true) {
-                runOnUiThread {
-                    var str = "";
-                    val lhashmap = hashmap.clone() as HashMap<String, List<Long>>;
-                    hashmap.clear()
-                    for (key in lhashmap.keys) {
-                        str += key + ": " + lhashmap[key]?.average() + "\r\n"
-                    }
-
-
-                    udpThingy.text = str
-                }
-                Thread.sleep(1000)
-            }
         }.start()
-    }
-
-    protected fun wifiIpAddress(context: Context): String? {
-        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        var ipAddress = wifiManager.connectionInfo.ipAddress
-
-        // Convert little-endian to big-endianif needed
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress)
-        }
-
-        val ipByteArray = BigInteger.valueOf(ipAddress.toLong()).toByteArray()
-
-        var ipAddressString: String?
-        try {
-            ipAddressString = InetAddress.getByAddress(ipByteArray).hostAddress
-        } catch (ex: UnknownHostException) {
-            Log.e("WIFIIP", "Unable to get host address.")
-            ipAddressString = null
-        }
-
-        return ipAddressString
     }
 }
