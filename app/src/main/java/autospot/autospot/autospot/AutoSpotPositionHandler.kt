@@ -1,6 +1,7 @@
 package autospot.autospot.autospot
 
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.widget.Toast
 import kotlin.math.exp
 
@@ -69,11 +70,11 @@ class AutoSpotPositionHandler(server: ServerThread, public var activity: AppComp
     init {
         server.addOnMessageListener {
             val splittet = it.split("=")
-            val mac = splittet[0]
-            if(mac=="home"){
+            val mac = splittet[0].trim()
+
+            if (mac.contains("home")) {
                 onHome(splittet[1])
-            }
-            else {
+            } else {
                 val value = splittet[1].toLongOrNull()
                 if (value != null) {
                     activity.runOnUiThread {

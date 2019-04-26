@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast
 
 import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -31,6 +32,9 @@ class MainActivity : AppCompatActivity() {
             val udp = UDPServerThread();
             PositionHandler = AutoSpotPositionHandler(udp, this)
             RotationHandler = AutoSpotRotationHandler()
+            PositionHandler!!.addOnHomeListener { ip ->
+                RotationHandler!!.ip = ip
+            }
             PositionHandler!!.addOnPositionListener(RotationHandler!!::onPosition)
             fun onRawData(it: HashMap<String, Double>) {
                 runOnUiThread {
