@@ -1,7 +1,6 @@
 package autospot.autospot.autospot
 
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.widget.Toast
 import kotlin.math.exp
 
@@ -111,7 +110,7 @@ class AutoSpotPositionHandler(server: ServerThread, public var activity: AppComp
                     }
                 }.filter { it != null }.map { it!! }
                 if (circles.size == 3) {
-                    val pos = Circle.tribleIntersection(circles[0], circles[1], circles[2]);
+                    val pos = Circle.tripleIntersection(circles[0], circles[1], circles[2]);
                     if (pos != null) {
                         onPosition(pos)
                     } else {

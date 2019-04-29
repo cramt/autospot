@@ -35,7 +35,7 @@ class Circle(val c: Vector2, val r: Double) : Serializable {
     }
 
     companion object {
-        fun tribleIntersection(c1: Circle, c2: Circle, c3: Circle): Vector2? {
+        fun tripleIntersection(c1: Circle, c2: Circle, c3: Circle): Vector2? {
             val intersections = arrayOf(
                 CircleCircleIntersection(c1, c2),
                 CircleCircleIntersection(c2, c3),
