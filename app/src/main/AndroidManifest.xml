@@ -18,6 +18,11 @@
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
         <activity
+                android:name=".Testing"
+                android:label="@string/title_activity_testing"
+                android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
                 android:name=".SessionActivity"
                 android:label="@string/title_activity_session"
                 android:theme="@style/AppTheme.NoActionBar">

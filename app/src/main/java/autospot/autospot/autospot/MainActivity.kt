@@ -2,7 +2,9 @@ package autospot.autospot.autospot
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast
 
@@ -17,11 +19,16 @@ class MainActivity : AppCompatActivity() {
         var RotationHandler: AutoSpotRotationHandler? = null
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setSupportActionBar(toolbar)
+        fab.setOnContextClickListener {
+            startActivity(Intent(this, Testing::class.java))
+            true
+        }
 
         val ESPHeaders = arrayOf(ESPHeader1, ESPHeader2, ESPHeader3)
         val ESPStrength = arrayOf(ESPstrength1, ESPstrength2, ESPstrength3)

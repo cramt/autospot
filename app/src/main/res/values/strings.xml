@@ -4,4 +4,5 @@
     <string name="title_activity_server">Server</string>
     <string name="title_activity_main2">MainActivity2</string>
     <string name="title_activity_session">SessionActivity</string>
+    <string name="title_activity_testing">Testing</string>
 </resources>
