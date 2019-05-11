@@ -1,5 +1,6 @@
 package autospot.autospot.autospot
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity;
 
@@ -20,14 +21,30 @@ class SessionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session)
         setSupportActionBar(toolbar)
-        handler.activity = this
-
+        val pref = this.getPreferences(Context.MODE_PRIVATE).edit()
+        handler.positions.toList().forEach {
+            pref.putFloat("mac_" + it.first+"_x", it.second.x.toFloat())
+            pref.putFloat("mac_" + it.first+"_y", it.second.y.toFloat())
+        }
+        pref.apply()
+        if(MainActivity.RotationHandler != null){
+            MainActivity.RotationHandler!!.on = true
+        }
         handler.addOnPositionListener(::onPosition)
+        MainActivity.RotationHandler?.addOnStepsListener { xy, yz ->
+            runOnUiThread {
+                stepsXY.text = xy.toString()
+                stepsYZ.text = yz.toString()
+            }
+        }
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
         handler.removeOnPositionListener(::onPosition)
         handler.activity = oldActivity
+        if(MainActivity.RotationHandler != null){
+            MainActivity.RotationHandler!!.on = false
+        }
+        super.onBackPressed()
     }
 }
