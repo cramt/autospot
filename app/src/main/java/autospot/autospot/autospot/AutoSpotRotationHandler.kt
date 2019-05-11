@@ -13,18 +13,27 @@ class AutoSpotRotationHandler {
     var y: Double = 0.0
     var z: Double = 0.0
     var ip: String = ""
+    private var currentXY = 0
+    private var currentYZ = 0
     fun onPosition(pos: Vector2) {
         val RAD_TO_DEG = 57.2957795;
         val spotPos = Vector2(x, y)
-        val dir = pos.sub(spotPos)
-        val xySteps = (atan(dir.y / dir.x) * RAD_TO_DEG * 4).roundToInt()
 
-        val yzSteps = (90 - (atan(pos.length(spotPos) / y) * RAD_TO_DEG * 2.666666)).roundToInt() * (-1)
-        sendUDPPacket(xySteps.toString() + "," + yzSteps.toString())
+        val origin = Vector2(0.0, 0.0)
+        val preDir = pos.sub(spotPos)
+        val postDir = pos.sub(origin)
+        val xySteps = ((atan(postDir.y / postDir.x) - atan(preDir.y / preDir.x)) * RAD_TO_DEG * 4).roundToInt()
+        val yzSteps = ((90 - atan(pos.length(spotPos) / z) * RAD_TO_DEG * 2.666666)).roundToInt()
+        onSteps(xySteps, yzSteps)
+        val xyDiff = currentXY - xySteps
+        val yzDiff = currentYZ - yzSteps
+        currentXY = xySteps
+        currentYZ = yzSteps
+        sendUDPPacket(xyDiff.toString() + "," + yzDiff.toString())
     }
 
     fun sendUDPPacket(str: String): Boolean {
-        if(!on){
+        if (!on) {
             return false
         }
         var address: InetAddress? = null
